@@ -1,0 +1,75 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 26
+    defaultConfig {
+        applicationId "com.example.scanmeasuredemo1"
+        minSdkVersion 17
+        targetSdkVersion 26
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    splits {
+        abi {
+            enable true
+            reset()
+            include "armeabi", "armeabi-v7a", 'arm64-v8a', "mips", "mips64", "x86", "x86_64"
+            universalApk true
+        }
+    }
+    compileOptions {
+        targetCompatibility 1.8
+        sourceCompatibility 1.8
+    }
+}
+
+// -------------------------
+ext.versionCodes = ['armeabi': 3, 'armeabi-v7a': 4, 'arm64-v8a': 5,
+                    'mips'   : 6, 'mips64': 7, 'x86': 8, 'x86_64': 9]
+
+
+import com.android.build.OutputFile
+
+// For each APK output variant, override versionCode with a combination
+// of ABI APK value * 1000 + defaultConfig.versionCode
+android.applicationVariants.all { variant ->
+// assign different version code for each output
+    variant.outputs.each { output ->
+        def abiFilter = output.getFilter(OutputFile.ABI)
+        def abiMultiplier = 0
+        if (abiFilter != null) {
+            abiMultiplier = project.ext.versionCodes.get(abiFilter)
+        }
+        output.versionCodeOverride =
+                abiMultiplier * 1000 + android.defaultConfig.versionCode
+    }
+}
+
+//-----------------------------------
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'com.android.support:appcompat-v7:26.1.0'
+    implementation 'com.android.support.constraint:constraint-layout:1.1.0'
+    implementation 'com.android.support:design:26.1.0'
+
+    implementation "io.reactivex.rxjava2:rxandroid:2.0.2"
+    implementation "io.reactivex.rxjava2:rxjava:2.1.9"
+    implementation "com.squareup.retrofit2:adapter-rxjava2:2.3.0"
+
+    implementation 'com.jakewharton:butterknife:8.8.1'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
+
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.1'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
+    implementation project(':openCVLibrary341')
+}
